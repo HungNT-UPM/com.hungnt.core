@@ -1,0 +1,15 @@
+{
+  "name": "com.hungnt.core",
+  "version": "1.0.2",
+  "displayName": "com.hungnt.core",
+  "description": "Core utilities (`HungNT.Core`: DebugEx, singletons, extensions, IService) and service locator (`HungNT`: ServiceLocator, ServiceRegister, GetService extensions). Odin attributes used on locator/register. Optional Demo assembly references Advertisement for ads samples.",
+  "unity": "2022.3",
+  "author": {
+    "name": "HungNT",
+    "url": "https://github.com/HungNT-UPM"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.10"
+  }
+}

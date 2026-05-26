@@ -1,0 +1,18 @@
+{
+    "name": "HungNT.Core.Demo",
+    "rootNamespace": "HungNT.Demo",
+    "references": [
+        "HungNT.Core",
+        "HungNT.Advertisement",
+        "Sirenix.OdinInspector.Attributes"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
