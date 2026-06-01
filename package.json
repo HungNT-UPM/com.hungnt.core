@@ -1,0 +1,15 @@
+{
+  "name": "com.hungnt.core",
+  "version": "1.0.6",
+  "displayName": "com.hungnt.core",
+  "description": "Core utilities (`HungNT.Core`: DebugEx, singletons, general extensions, IService) and service locator (`HungNT`: ServiceLocator, ServiceRegister, GetService extensions). Editor tools: scene window, package catalog manager, data menu — requires Odin Inspector in the project.",
+  "unity": "2022.3",
+  "author": {
+    "name": "HungNT",
+    "url": "https://github.com/HungNT-UPM"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.11"
+  }
+}
