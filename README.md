@@ -1,4 +1,4 @@
-# HungNT Core (`com.hungnt.core`)
+# com.hungnt.core
 
 Foundation package cho các module HungNT khác: tiện ích runtime, singleton, logging, **Service Locator**, và editor tooling dùng chung.
 

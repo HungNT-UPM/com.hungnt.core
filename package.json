@@ -1,6 +1,6 @@
 {
   "name": "com.hungnt.core",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "displayName": "com.hungnt.core",
   "description": "Core utilities (`HungNT.Core`: DebugEx, singletons, general extensions, IService) and service locator (`HungNT`: ServiceLocator, ServiceRegister). Editor tools: scene window, package catalog manager, data menu — requires Odin Inspector in the project.",
   "unity": "2022.3",
