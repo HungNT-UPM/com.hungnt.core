@@ -7,7 +7,7 @@ Foundation package cho các module HungNT khác: tiện ích runtime, singleton,
 | Namespace | Nội dung |
 |-----------|----------|
 | **`HungNT.Core`** | `DebugEx`, `MonoSingleton` / `MonoSingletonScene`, extension helpers (`ComponentExtensions`, string `Color` / `Bold`, …), contract **`IService`** |
-| **`HungNT`** | **`ServiceLocator`**, **`ServiceRegister`**, extension **`GetService` / `RegisterService` / `TryGetService`** trên `MonoBehaviour` |
+| **`HungNT`** | **`ServiceLocator`** (`Get`, `TryGet`, `Register`, `Unregister`, `IsRegistered`), **`ServiceRegister`** |
 | **`HungNT.Core.Editor`** | Scene Editor Window, Open First Scene, Package Manager (`Assets/BaseHungNT/Editor/PackageCatalogData.asset`), data menu, copy folder path |
 
 **Odin Inspector** cần có trong project (không khai báo UPM dependency).
@@ -25,12 +25,16 @@ Assembly **`HungNT.Core.Demo`** — script `Demo/ServiceLocatorDemo.cs`:
 3. Play Mode → bấm các nút Odin trên Inspector (`ShowBanner`, `ShowInterstitial`, `TryGetAdsService`, …).
 
 ```csharp
-var ads = this.GetService<IAdsService>();
+var ads = ServiceLocator.Instance.Get<IAdsService>();
 
-if (this.TryGetService<IAdsService>(out var ads2))
+if (ServiceLocator.Instance.TryGet<IAdsService>(out var ads2))
 {
     ads2.ShowBanner();
 }
 
 ServiceLocator.Instance.Register<IAdsService>(myAdsService);
+ServiceLocator.Instance.Unregister<IAdsService>();
+
+// Callback pattern — gọi ngay nếu đã register, đợi nếu chưa
+ServiceLocator.Instance.Get<IAdsService>(svc => svc.ShowBanner());
 ```
