@@ -7,7 +7,7 @@ namespace HungNT.Editor
 {
     public static class PackageCatalogDataStorage
     {
-        public const string AssetPath = "Assets/BaseHungNT/Editor/PackageCatalogData.asset";
+        public const string AssetPath = "Assets/Editor/PackageCatalogData.asset";
 
         public static PackageCatalogData LoadOrCreate()
         {

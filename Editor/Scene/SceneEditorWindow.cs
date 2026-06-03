@@ -9,7 +9,7 @@ namespace HungNT.Editor
 {
     public sealed class SceneEditorWindow : OdinEditorWindow
     {
-        [MenuItem("HungNT/Scene/Scene Editor Window")]
+        [MenuItem("HungNT/Scene Tool/Scene Editor Window", false, 10)]
         private static void OpenWindow()
         {
             var window = GetWindow<SceneEditorWindow>();

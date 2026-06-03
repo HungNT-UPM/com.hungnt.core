@@ -4,7 +4,7 @@ namespace HungNT.Editor
 {
     public static class SceneMenuItems
     {
-        [MenuItem("HungNT/Scene/Open First Scene", false)]
+        [MenuItem("HungNT/Scene Tool/Open First Scene", false, 0)]
         private static void OpenFirstScene()
         {
             if (!BuildSceneEditorUtility.OpenFirstEnabledBuildScene(false))
@@ -16,7 +16,7 @@ namespace HungNT.Editor
             }
         }
 
-        [MenuItem("HungNT/Scene/Open First Scene", true)]
+        [MenuItem("HungNT/Scene Tool/Open First Scene", true, 0)]
         private static bool ValidateOpenFirstScene()
         {
             return BuildSceneEditorUtility.TryGetFirstEnabledBuildScene(out _, out _);

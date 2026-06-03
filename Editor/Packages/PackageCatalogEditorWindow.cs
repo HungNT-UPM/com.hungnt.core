@@ -8,7 +8,7 @@ namespace HungNT.Editor
 {
     public sealed class PackageCatalogEditorWindow : OdinEditorWindow
     {
-        [MenuItem("HungNT/Package Manager", false, -100)]
+        [MenuItem("HungNT/Package Manager", false, 0)]
         private static void Open()
         {
             var window = GetWindow<PackageCatalogEditorWindow>();
@@ -17,7 +17,7 @@ namespace HungNT.Editor
         }
 
         [PropertySpace]
-        [InfoBox("Catalog: Assets/BaseHungNT/Editor/PackageCatalogData.asset. Tick = installed in manifest; untick + Apply = remove.")]
+        [InfoBox("Catalog: Assets/Editor/PackageCatalogData.asset. Tick = installed in manifest; untick + Apply = remove.")]
         [ShowInInspector, ReadOnly]
         private string CatalogAssetPath => PackageCatalogDataStorage.AssetPath;
 
