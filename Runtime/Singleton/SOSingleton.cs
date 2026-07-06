@@ -28,6 +28,10 @@ namespace HungNT
                         _instance = temp; // Use the temporary instance if loading fails
                         DebugEx.LogError($"Failed to load asset at Resources/{path}".Color("red"));
                     }
+                    else
+                    {
+                        DestroyImmediate(temp); // không để rác SO instance khi load thành công
+                    }
                 }
 
                 return _instance;

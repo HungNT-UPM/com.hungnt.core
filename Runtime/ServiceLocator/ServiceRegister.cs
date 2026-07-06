@@ -6,13 +6,27 @@ using UnityEngine;
 namespace HungNT
 {
     /// <summary>
-    /// Đăng ký services vào <see cref="T:HungNT.ServiceLocator"/> khi scene khởi động.
+    /// Composition root: đăng ký services vào <see cref="T:HungNT.ServiceLocator"/> khi scene khởi động.
     /// — Mono services: tự động tìm qua <c>GetComponentsInChildren</c> trên cùng GameObject.
     /// — Non-Mono services: thêm trực tiếp từ Inspector qua <c>[SerializeReference]</c>.
+    /// <para>Mỗi service được đăng ký dưới <b>tất cả</b> interface kế thừa <see cref="IService"/>
+    /// (không có interface trung gian thì dùng concrete type).</para>
+    /// <para><see cref="_dontDestroyOnLoad"/> BẬT (mặc định — bootstrap): GameObject sống xuyên scene,
+    /// chỉ cho phép một register persistent; vào lại scene bootstrap sẽ tự hủy bản duplicate.
+    /// TẮT: services sống theo scene và tự Unregister khỏi locator khi GameObject bị destroy
+    /// — dùng cho service chỉ có nghĩa trong một scene (scene-scoped).</para>
+    /// <para>⚠️ <see cref="IService.Initialize"/> chạy ngay trong Awake của register (execution order -999),
+    /// tức TRƯỚC cả <c>Awake()</c> của chính service — đừng dựa vào Awake để chuẩn bị state cho Initialize.</para>
     /// </summary>
     [DefaultExecutionOrder(-999)]
     public class ServiceRegister : MonoBehaviour
     {
+        private static ServiceRegister _persistentInstance;
+
+        [SerializeField]
+        [Tooltip("Bật: sống xuyên scene (bootstrap, duy nhất một register persistent).\nTắt: services scene-scoped — tự unregister khi GameObject destroy.")]
+        private bool _dontDestroyOnLoad = true;
+
         [ShowInInspector, ReadOnly]
         [Tooltip("Danh sách MonoBehaviour services đã được register (chỉ đọc, cập nhật lúc Play Mode).")]
         private List<IService> _monoServices = new();
@@ -21,11 +35,48 @@ namespace HungNT
         [Tooltip("Plain C# services (non-MonoBehaviour). Thêm từ Inspector bằng cách right-click → 'Add Reference'.")]
         private List<IService> _nonMonoServices = new();
 
+        // (key type, impl) đã đăng ký bởi register này — để unregister đúng phần của mình khi destroy.
+        private readonly List<(Type type, IService impl)> _registered = new();
+
         // ── Unity ────────────────────────────────────────────────────────────
 
         private void Awake()
         {
+            if (_dontDestroyOnLoad)
+            {
+                if (_persistentInstance != null && _persistentInstance != this)
+                {
+                    this.LogWarning($"Duplicate persistent ServiceRegister — destroy {gameObject.name.Color("red")}.");
+                    Destroy(gameObject);
+                    return;
+                }
+
+                _persistentInstance = this;
+
+                if (transform.parent == null)
+                    DontDestroyOnLoad(gameObject);
+                else
+                    this.LogWarning("DontDestroyOnLoad chỉ hoạt động với root GameObject — register này vẫn sẽ chết theo scene.");
+            }
+
             Register();
+        }
+
+        private void OnDestroy()
+        {
+            if (_persistentInstance == this)
+                _persistentInstance = null;
+
+            // Rút các service của mình khỏi locator (nếu locator còn sống) — tránh stale reference.
+            if (!ServiceLocator.HasInstance)
+                return;
+
+            var locator = ServiceLocator.Instance;
+            if (locator == null)
+                return;
+
+            foreach (var (type, impl) in _registered)
+                locator.Unregister(type, impl);
         }
 
         protected virtual void Register()
@@ -47,7 +98,7 @@ namespace HungNT
 
             foreach (var service in found)
             {
-                RegisterByFirstServiceInterface(service);
+                RegisterService(service);
                 _monoServices.Add(service);
             }
         }
@@ -58,16 +109,34 @@ namespace HungNT
             {
                 if (service == null) continue;
 
-                RegisterByFirstServiceInterface(service);
+                RegisterService(service);
             }
         }
 
-        private static void RegisterByFirstServiceInterface(IService impl)
+        /// <summary>
+        /// Đăng ký <paramref name="impl"/> dưới mọi interface kế thừa <see cref="IService"/>;
+        /// không có interface trung gian nào thì dùng concrete type làm key.
+        /// </summary>
+        private void RegisterService(IService impl)
         {
             var concreteType = impl.GetType();
-            var keyType = FindFirstServiceInterface(concreteType) ?? concreteType;
+            var registeredAny = false;
 
-            ServiceLocator.Instance.Register(keyType, impl);
+            foreach (var iface in concreteType.GetInterfaces())
+            {
+                if (iface == typeof(IService) || !typeof(IService).IsAssignableFrom(iface))
+                    continue;
+
+                ServiceLocator.Instance.Register(iface, impl);
+                _registered.Add((iface, impl));
+                registeredAny = true;
+            }
+
+            if (!registeredAny)
+            {
+                ServiceLocator.Instance.Register(concreteType, impl);
+                _registered.Add((concreteType, impl));
+            }
         }
 
         private void InitializeAllServices()
@@ -86,23 +155,6 @@ namespace HungNT
 
             foreach (var service in _nonMonoServices)
                 service?.LateInitialize();
-        }
-
-        /// <summary>
-        /// Tìm interface con đầu tiên của <see cref="T:HungNT.Core.IService"/> trên <paramref name="type"/>.
-        /// Trả về <c>null</c> nếu class implement <see cref="T:HungNT.Core.IService"/> trực tiếp (không có interface trung gian).
-        /// </summary>
-        private static Type FindFirstServiceInterface(Type type)
-        {
-            var iServiceType = typeof(IService);
-
-            foreach (var iface in type.GetInterfaces())
-            {
-                if (iface != iServiceType && iServiceType.IsAssignableFrom(iface))
-                    return iface;
-            }
-
-            return null;
         }
     }
 }

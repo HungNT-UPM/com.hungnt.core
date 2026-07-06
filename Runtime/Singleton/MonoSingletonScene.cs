@@ -1,29 +1,40 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace HungNT
 {
+    /// <summary>
+    /// Singleton MonoBehaviour sống theo scene (KHÔNG DontDestroyOnLoad — bị destroy khi unload scene).
+    /// <para>⚠️ Subclass KHÔNG được tự khai báo <c>Awake()</c>/<c>OnApplicationQuit()</c> — override <see cref="OnAwake"/> thay thế.</para>
+    /// </summary>
     public class MonoSingletonScene<TMono> : MonoBehaviour where TMono : MonoBehaviour
     {
         private static TMono _instance;
-        private static readonly object _lock = new object();
+        private static bool _isQuitting;
 
+        /// <summary>Đã có instance sống (không tự tạo mới khi kiểm tra).</summary>
+        public static bool HasInstance => _instance != null;
+
+        /// <summary>
+        /// Instance duy nhất trong scene hiện tại. Tự tạo GameObject nếu chưa có.
+        /// Trả về <c>null</c> khi app đang quit (không tạo object mới giữa lúc teardown).
+        /// </summary>
         public static TMono Instance
         {
             get
             {
+                if (_instance != null)
+                    return _instance;
+
+                if (_isQuitting)
+                    return null;
+
+                _instance = FindFirstObjectByType<TMono>();
+
+                // create new instance
                 if (_instance == null)
                 {
-                    lock (_lock)
-                    {
-                        _instance = FindFirstObjectByType<TMono>();
-
-                        // create new instance
-                        if (_instance == null)
-                        {
-                            var go = new GameObject(typeof(TMono).Name);
-                            _instance = go.AddComponent<TMono>();
-                        }
-                    }
+                    var go = new GameObject(typeof(TMono).Name);
+                    _instance = go.AddComponent<TMono>();
                 }
 
                 return _instance;
@@ -38,6 +49,7 @@ namespace HungNT
 
             if (_instance == this)
             {
+                _isQuitting = false;
                 OnAwake();
                 return;
             }
@@ -52,6 +64,11 @@ namespace HungNT
             {
                 _instance = null;
             }
+        }
+
+        private void OnApplicationQuit()
+        {
+            _isQuitting = true;
         }
 
         protected virtual void OnAwake()
