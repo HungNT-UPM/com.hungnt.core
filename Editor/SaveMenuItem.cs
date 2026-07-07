@@ -8,7 +8,7 @@ namespace HungNT.Editor
 {
     public static class SaveMenuItem
     {
-        [MenuItem("HungNT/Data/Clear All Data")]
+        [MenuItem("HungNT/Data Save/Clear All Data")]
         private static void ClearData()
         {
             PlayerPrefs.DeleteAll();
@@ -23,7 +23,7 @@ namespace HungNT.Editor
             Debug.Log("All data cleared!".Color("lime"));
         }
 
-        [MenuItem("HungNT/Data/Open Persistent Data")]
+        [MenuItem("HungNT/Data Save/Open Persistent Data")]
         public static void OpenSaveFolder()
         {
             var saveFolderPath = Application.persistentDataPath;
