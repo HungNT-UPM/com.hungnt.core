@@ -1,7 +1,9 @@
 {
     "name": "HungNT.Core",
     "rootNamespace": "HungNT.Core",
-    "references": [],
+    "references": [
+        "VContainer"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

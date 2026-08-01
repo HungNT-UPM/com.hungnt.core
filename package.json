@@ -1,8 +1,8 @@
 {
   "name": "com.hungnt.core",
-  "version": "1.1.2",
+  "version": "2.0.0",
   "displayName": "HungNT Core",
-  "description": "Core utilities (`HungNT.Core`: DebugEx, singletons, general extensions, IService) and service locator (`HungNT`: ServiceLocator, ServiceRegister). Editor tools: scene window, package catalog manager, data menu — requires Odin Inspector in the project.",
+  "description": "Core utilities for the HungNT base code: DebugEx logging, MonoSingleton, general extensions, and IAppLifecycle (Unity lifecycle messages as C# events, so services can be plain C# classes). Ships a VContainer installer (`builder.InstallCore()`). Requires VContainer (jp.hadashikick.vcontainer). Editor tools: scene window, package catalog manager, data menu — requires Odin Inspector in the project.",
   "unity": "2022.3",
   "author": {
     "name": "HungNT",
