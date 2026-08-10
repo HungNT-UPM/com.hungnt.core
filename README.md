@@ -1,40 +1,79 @@
 # com.hungnt.core
 
-Foundation package cho các module HungNT khác: tiện ích runtime, singleton, logging, **Service Locator**, và editor tooling dùng chung.
+Nền tảng cho mọi package `com.hungnt.*`: hạ tầng Dependency Injection, tiện ích runtime, logging và editor tooling dùng chung.
 
-## Tính năng
+## Yêu cầu
+
+**VContainer là dependency bắt buộc** nhưng không khai trong `package.json` vì nó phân phối qua Git URL, không nằm trên registry nào mà UPM tự resolve được. Cài thủ công vào `Packages/manifest.json` trước khi thêm bất kỳ package `com.hungnt.*` nào:
+
+```json
+"jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer"
+```
+
+Thiếu nó thì các package sẽ lỗi compile ngay.
+
+**Odin Inspector** cũng cần có sẵn trong project (không khai UPM dependency).
+
+## Nội dung
 
 | Namespace | Nội dung |
 |-----------|----------|
-| **`HungNT.Core`** | `DebugEx`, `MonoSingleton` / `MonoSingletonScene`, extension helpers (`ComponentExtensions`, string `Color` / `Bold`, …), contract **`IService`** |
-| **`HungNT`** | **`ServiceLocator`** (`Get`, `TryGet`, `Register`, `Unregister`, `IsRegistered`), **`ServiceRegister`** |
-| **`HungNT.Core.Editor`** | Scene Editor Window, Open First Scene, Package Manager (`Assets/BaseHungNT/Editor/PackageCatalogData.asset`), data menu, copy folder path |
+| **`HungNT`** | `IAppLifecycleService` + `AppLifecycleService`, `NullAppLifecycleService`, `CoreInstaller` |
+| **`HungNT.Core`** | `DebugEx`, `MonoSingleton` / `MonoSingletonScene`, extension helpers (`ComponentExtensions`, string `Color` / `Bold`, …) |
+| **`HungNT.Core.Editor`** | Scene Editor Window, Open First Scene, Package Manager, data menu, copy folder path |
 
-**Odin Inspector** cần có trong project (không khai báo UPM dependency).
+## Cài đặt vào container
 
-### Package catalog
-
-Danh sách Git URL packages lưu tại **`Assets/BaseHungNT/Editor/PackageCatalogData.asset`** (ScriptableObject theo project). Mở **`HungNT/Package Manager`** → Reload sync từ `Packages/manifest.json`, tick/untick + Apply để cài/gỡ.
-
-## Demo
-
-Assembly **`HungNT.Core.Demo`** — script `Demo/ServiceLocatorDemo.cs`:
-
-1. Scene có `ServiceLocator` + `ServiceRegister` và service đã đăng ký (vd. `IAdsService`).
-2. Gắn `ServiceLocatorDemo` lên GameObject.
-3. Play Mode → bấm các nút Odin trên Inspector (`ShowBanner`, `ShowInterstitial`, `TryGetAdsService`, …).
+Gọi ở `Configure` của LifetimeScope gốc, trước các package khác:
 
 ```csharp
-var ads = ServiceLocator.Instance.Get<IAdsService>();
-
-if (ServiceLocator.Instance.TryGet<IAdsService>(out var ads2))
-{
-    ads2.ShowBanner();
-}
-
-ServiceLocator.Instance.Register<IAdsService>(myAdsService);
-ServiceLocator.Instance.Unregister<IAdsService>();
-
-// Callback pattern — gọi ngay nếu đã register, đợi nếu chưa
-ServiceLocator.Instance.Get<IAdsService>(svc => svc.ShowBanner());
+builder.InstallCore();
 ```
+
+## IAppLifecycleService
+
+VContainer chỉ cấp `Start` / `Tick` / `Dispose`. Những message vòng đời còn lại của Unity đi qua interface này, nhờ đó service không phải trở thành MonoBehaviour chỉ để nghe pause hay quit:
+
+```csharp
+public class SaveOnPause : IDisposable
+{
+    private readonly IAppLifecycleService _appLifecycle;
+
+    public SaveOnPause(IAppLifecycleService appLifecycle)
+    {
+        _appLifecycle = appLifecycle;
+        _appLifecycle.OnPaused += HandlePaused;
+    }
+
+    public void Dispose() => _appLifecycle.OnPaused -= HandlePaused;
+
+    private void HandlePaused(bool paused) { }
+}
+```
+
+`OnPaused` là hook lưu dữ liệu tin cậy nhất trên mobile — `OnQuitting` không được đảm bảo gọi khi OS kill process.
+
+`AppLifecycleService` là MonoBehaviour duy nhất của base code; `CoreInstaller` tự tạo GameObject cho nó và giữ xuyên scene.
+
+Ngoài container (công cụ Editor, EditMode test) dùng `NullAppLifecycleService` — không phát sự kiện nào.
+
+## Nhận service ở MonoBehaviour
+
+Đánh `[Inject]` thẳng lên field, không cần hàm trung gian:
+
+```csharp
+public class HealthBar : MonoBehaviour
+{
+    [Inject] private IEventBusService _eventBus;
+}
+```
+
+Component phải được đăng ký ở scope thì container mới tiêm được:
+
+```csharp
+builder.RegisterComponentInHierarchy<HealthBar>();
+```
+
+## Package catalog
+
+Danh sách Git URL packages lưu tại `Assets/BaseHungNT/Editor/PackageCatalogData.asset` (ScriptableObject theo project). Mở **`HungNT/Package Manager`** → Reload sync từ `Packages/manifest.json`, tick/untick + Apply để cài/gỡ.
